@@ -51,6 +51,7 @@ void draw() {
     deliverForks = false;
   }
   if (deliverCommitActivity) {
+    data();
     if (commitActivity != null) {
       fill(0);
       int rows = height / ROW_HEIGHT;
@@ -64,6 +65,7 @@ void draw() {
     }
     deliverCommitActivity = false;
   }
+  
 }
 
 void fetchRepo() {
@@ -106,4 +108,34 @@ void table() {
   }
 }
 
+void data() {
+  // Lines of random colour
+  int alpha = 30;
+  int ROWS = height / ROW_HEIGHT;
+  for (int i = 0; i < ROWS; i++) {
+    strokeWeight(STROKE_WIDTH);
+    strokeCap(ROUND);
+    int colour = color(random(255), random(255), random(255));
+    stroke(colour, alpha);
+    int rowCentre = i * ROW_HEIGHT + ROW_HEIGHT / 2;
+    line(110, rowCentre, width - 10, rowCentre);
+    
+    // Add some commits
+    strokeWeight(2);
+    strokeCap(SQUARE);
+    stroke(colour, 100);
+    int top = rowCentre - STROKE_WIDTH / 2;
+    int bottom = rowCentre + STROKE_WIDTH / 2;
+    
+    int count=0;
+    float point = (WIDTH-120)/365;
+    for (int pew : commitActivity){
+      count++;
+      float drawPoint = count*point+110;
+      println(pew);
+      stroke(colour, pew*30);
+      line(drawPoint, top, drawPoint, bottom);
+    }
+  }
+}
 
