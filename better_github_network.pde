@@ -132,7 +132,6 @@ void data() {
     for (int pew : commitActivity){
       count++;
       float drawPoint = count*point+110;
-      println(pew);
       stroke(colour, pew*30);
       line(drawPoint, top, drawPoint, bottom);
     }
