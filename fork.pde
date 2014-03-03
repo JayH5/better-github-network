@@ -14,6 +14,8 @@ static class Fork {
   final String createdAt;
   
   final String ownerLogin;
+  boolean committed = false;
+  CommitActivity commitActivity;
 
   static final DateFormat ISO8601 =
       new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
@@ -36,4 +38,29 @@ static class Fork {
     }
     return null;
   }
+  
+  void fetchCommitActivity() {
+    String query = "repos/"+fullName+"/stats/commit_activity";
+    //println(query);
+    try{
+      JsonElement commitActivityJson = HttpClient.queryGithub(query,null);//"repos/square/picasso/stats/commit_activity", null);
+      commitActivity = new CommitActivity((JsonArray) commitActivityJson);
+    }
+    catch(Exception e)
+    {
+      println("failing on: " + query);
+    }
+    
+    committed=true;
+  }
+  
+   CommitActivity getCommits()
+   {
+     return commitActivity;
+   }
+   
+   boolean isCommitted()
+   {
+      return committed;
+   }
 }
