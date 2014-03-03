@@ -5,12 +5,12 @@ import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import java.util.List;
 
-int WIDTH = 640;
-int HEIGHT = 480;
+int WIDTH = 1280;
+int HEIGHT = 720;
 int ROW_HEIGHT = 40;
 int STROKE_WIDTH = 10;
 
-List<Fork> forks;
+Forks forks;
 boolean threadDelivery = false;
 
 void setup() {
@@ -25,11 +25,15 @@ void setup() {
 void draw() {
   if (threadDelivery) {
     if (forks != null) {
-      int rows = height / ROW_HEIGHT;
       fill(0);
-      for (int i = 0, n = forks.size(); i < n && i < rows; i++) {
-        Fork fork = forks.get(i);
-        text(fork.fullName, 10, i * ROW_HEIGHT + ROW_HEIGHT / 2);
+      int rows = height / ROW_HEIGHT;
+      int row = 0;
+      for (Fork fork : forks) {
+        text(fork.ownerLogin, 10, row * ROW_HEIGHT + ROW_HEIGHT / 2);
+        text(fork.createdAt, 200, row * ROW_HEIGHT + ROW_HEIGHT / 2);
+        if (++row == rows) {
+          break;
+        }
       }
     }
     threadDelivery = false;
@@ -37,11 +41,8 @@ void draw() {
 }
 
 void fetchForks() {
-  JsonArray forksJson = (JsonArray) HttpClient.queryGithub("repos/square/picasso/forks", null);
-  forks = new ArrayList<Fork>(forksJson.size());
-  for (JsonElement forkJson : forksJson) {
-    forks.add(new Fork((JsonObject) forkJson));
-  }
+  JsonElement forksJson = HttpClient.queryGithub("repos/square/picasso/forks", null);
+  forks = new Forks((JsonArray) forksJson);
   threadDelivery = true;
 }
 
