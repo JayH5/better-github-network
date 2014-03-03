@@ -10,18 +10,20 @@ import java.net.MalformedURLException;
 import java.net.HttpURLConnection;
 import java.util.Map;
 
-static class Github {
+static class HttpClient {
   
-  static final String BASE_URI = "https://api.github.com/";
+  static final String GITHUB_API = "https://api.github.com/";
   
   /** 
    * Perform a query against the Github API returning the JSON response.
    * @param path the query path, e.g. "repos/square/picasso"
    * @param params the unescaped query parameters
    */
-  static JsonElement query(String path, Map<String, String> params) {
-    URL url = buildURL(path, params);
+  static JsonElement queryGithub(String path, Map<String, String> params) {
+    return queryJsonService(buildURL(GITHUB_API, path, params));
+  }
   
+  static JsonElement queryJsonService(URL url) {
     JsonParser parser = new JsonParser();
     HttpURLConnection conn =  null;
     JsonElement json = null;
@@ -37,13 +39,15 @@ static class Github {
         conn.disconnect();
       }
     }
-  
     return json;
   }
   
-  static URL buildURL(String path, Map<String, String> params) {
+  static URL buildURL(String host, String path, Map<String, String> params) {
     StringBuilder sb = new StringBuilder();
-    sb.append(BASE_URI).append(path);
+    sb.append(host);
+    if (host != null) {
+      sb.append(path);
+    }
     if (params != null && !params.isEmpty()) {
       sb.append("?");
       // Bug in Processing means we can't do Map.Entry<String, String>

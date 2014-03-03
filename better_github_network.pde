@@ -13,7 +13,7 @@ void setup() {
   smooth();
 
   table();
-  JsonArray forks = (JsonArray) Github.query("repos/square/picasso/forks", null);
+  JsonArray forks = (JsonArray) HttpClient.queryGithub("repos/square/picasso/forks", null);
 
   int rows = height / ROW_HEIGHT;
   for (int i = 0, n = forks.size(); i < n && i < rows; i++) {
