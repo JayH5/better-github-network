@@ -10,8 +10,12 @@ int HEIGHT = 720;
 int ROW_HEIGHT = 40;
 int STROKE_WIDTH = 10;
 
+Repo repo;
 Forks forks;
-boolean threadDelivery = false;
+CommitActivity commitActivity;
+boolean deliverRepo = false;
+boolean deliverForks = false;
+boolean deliverCommitActivity = false;
 
 void setup() {
   size(WIDTH, HEIGHT);
@@ -19,31 +23,66 @@ void setup() {
   smooth();
 
   table();
-  thread("fetchForks");  
+  thread("fetchRepo");
+  thread("fetchForks");
+  thread("fetchCommitActivity");
 }
 
 void draw() {
-  if (threadDelivery) {
+  if (deliverRepo) {
+    if (repo != null) {
+      fill(0);
+      // TODO: Do something with repo data
+    }
+    deliverRepo = false;
+  }
+  if (deliverForks) {
     if (forks != null) {
       fill(0);
       int rows = height / ROW_HEIGHT;
       int row = 0;
       for (Fork fork : forks) {
         text(fork.ownerLogin, 10, row * ROW_HEIGHT + ROW_HEIGHT / 2);
-        text(fork.createdAt, 200, row * ROW_HEIGHT + ROW_HEIGHT / 2);
         if (++row == rows) {
           break;
         }
       }
     }
-    threadDelivery = false;
+    deliverForks = false;
+  }
+  if (deliverCommitActivity) {
+    if (commitActivity != null) {
+      fill(0);
+      int rows = height / ROW_HEIGHT;
+      int row = 0;
+      for (Integer dayCommits : commitActivity) {
+        // TODO: Draw commit activity
+        if (++row == rows) {
+          break;
+        }
+      }
+    }
+    deliverCommitActivity = false;
   }
 }
+
+void fetchRepo() {
+  JsonElement repoJson = HttpClient.queryGithub("repos/square/picasso", null);
+  repo = new Repo((JsonObject) repoJson);
+  deliverRepo = true;
+}
+  
 
 void fetchForks() {
   JsonElement forksJson = HttpClient.queryGithub("repos/square/picasso/forks", null);
   forks = new Forks((JsonArray) forksJson);
-  threadDelivery = true;
+  deliverForks = true;
+}
+
+void fetchCommitActivity() {
+  JsonElement commitActivityJson = HttpClient.queryGithub("repos/square/picasso/stats/commit_activity", null);
+  commitActivity = new CommitActivity((JsonArray) commitActivityJson);
+  deliverCommitActivity = true;
 }
 
 void table() {
