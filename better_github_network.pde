@@ -2,10 +2,16 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 int WIDTH = 640;
 int HEIGHT = 480;
 int ROW_HEIGHT = 40;
 int STROKE_WIDTH = 10;
+
+List<Fork> forks;
+boolean threadDelivery = false;
 
 void setup() {
   size(WIDTH, HEIGHT);
@@ -13,15 +19,30 @@ void setup() {
   smooth();
 
   table();
-  JsonArray forks = (JsonArray) HttpClient.queryGithub("repos/square/picasso/forks", null);
+  thread("fetchForks");  
+}
 
-  int rows = height / ROW_HEIGHT;
-  for (int i = 0, n = forks.size(); i < n && i < rows; i++) {
-    JsonObject forkJson = (JsonObject) forks.get(i);
-    Fork fork = new Fork(forkJson);
-    fill(0);
-    text(fork.fullName, 10, i * ROW_HEIGHT + ROW_HEIGHT / 2);
+void draw() {
+  if (threadDelivery) {
+    if (forks != null) {
+      int rows = height / ROW_HEIGHT;
+      fill(0);
+      for (int i = 0, n = forks.size(); i < n && i < rows; i++) {
+        Fork fork = forks.get(i);
+        text(fork.fullName, 10, i * ROW_HEIGHT + ROW_HEIGHT / 2);
+      }
+    }
+    threadDelivery = false;
   }
+}
+
+void fetchForks() {
+  JsonArray forksJson = (JsonArray) HttpClient.queryGithub("repos/square/picasso/forks", null);
+  forks = new ArrayList<Fork>(forksJson.size());
+  for (JsonElement forkJson : forksJson) {
+    forks.add(new Fork((JsonObject) forkJson));
+  }
+  threadDelivery = true;
 }
 
 void table() {
