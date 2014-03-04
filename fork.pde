@@ -2,9 +2,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 static class Fork {
@@ -14,9 +11,6 @@ static class Fork {
   final String createdAt;
   
   final String ownerLogin;
-
-  static final DateFormat ISO8601 =
-      new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
   Fork(JsonObject jsonFork) {
     id = jsonFork.getAsJsonPrimitive("id").getAsLong();
@@ -29,11 +23,6 @@ static class Fork {
   }
   
   Date getCreatedAtDate() {
-    try {
-      return ISO8601.parse(createdAt);
-    } catch (ParseException e) {
-      println("Couldn't parse date!");
-    }
-    return null;
+    return parseDate(createdAt);
   }
 }

@@ -33,7 +33,7 @@ void setup() {
   smooth();
 
   table();
-  thread("fetchRepo");
+  //thread("fetchRepo");
   //thread("fetchCommitActivity");
   //thread("fetchCodeFrequency");
   //thread("fetchForks");  
