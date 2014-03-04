@@ -32,7 +32,7 @@ static class HttpClient {
     HttpURLConnection conn =  null;
     JsonElement json = null;
     try {
-      conn = openConnection(URL);
+      conn = openConnection(url);
       if (conn.getResponseCode() == 200) {
         json = parser.parse(new InputStreamReader(conn.getInputStream()));
       }
@@ -71,7 +71,7 @@ static class HttpClient {
           currentURL = null;
         }
       } catch (IOException e) {
-        println("Connection error! " e.getMessage());
+        println("Connection error! " + e.getMessage());
         break;
       } finally {
         if (conn != null) {
