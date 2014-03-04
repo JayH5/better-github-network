@@ -3,19 +3,29 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 int WIDTH = 1280;
 int HEIGHT = 720;
 int ROW_HEIGHT = 40;
 int STROKE_WIDTH = 10;
 
+String DEFAULT_OWNER = "square";
+String DEFAULT_REPO = "picasso";
+
 Repo repo;
-Forks forks;
 CommitActivity commitActivity;
+CodeFrequency codeFrequency;
 boolean deliverRepo = false;
-boolean deliverForks = false;
 boolean deliverCommitActivity = false;
+boolean deliverCodeFrequency = false;
+
+Forks forks;
+Map<Fork, Branches> forkBranches;
+boolean deliverForks = false;
+boolean deliverForkBranches = false;
 
 void setup() {
   size(WIDTH, HEIGHT);
@@ -24,17 +34,33 @@ void setup() {
 
   table();
   thread("fetchRepo");
-  thread("fetchForks");
-  thread("fetchCommitActivity");
+  //thread("fetchCommitActivity");
+  //thread("fetchCodeFrequency");
+  //thread("fetchForks");  
 }
 
 void draw() {
+  checkDeliveries();
+}
+
+void checkDeliveries() {
   if (deliverRepo) {
     if (repo != null) {
-      fill(0);
       // TODO: Do something with repo data
     }
     deliverRepo = false;
+  }
+  if (deliverCommitActivity) {
+    if (commitActivity != null) {
+      // TODO: display commit activity
+    }
+    deliverCommitActivity = false;
+  }
+  if (deliverCodeFrequency) {
+    if (codeFrequency != null) {
+      // TODO: display code frequency
+    }
+    deliverCodeFrequency = false;
   }
   if (deliverForks) {
     if (forks != null) {
@@ -50,36 +76,27 @@ void draw() {
     }
     deliverForks = false;
   }
-  if (deliverCommitActivity) {
-    if (commitActivity != null) {
-      fill(0);
-      int rows = height / ROW_HEIGHT;
-      int row = 0;
-      for (Integer dayCommits : commitActivity) {
-        // TODO: Draw commit activity
-        if (++row == rows) {
-          break;
-        }
-      }
-    }
-    deliverCommitActivity = false;
-  }
 }
 
 void fetchRepo() {
-  repo = Repo.fetch("square", "picasso");
+  repo = Repo.fetch(DEFAULT_OWNER, DEFAULT_REPO);
   deliverRepo = true;
 }
   
 
 void fetchForks() {
-  forks = Forks.fetch("square", "picasso");
+  forks = Forks.fetch(DEFAULT_OWNER, DEFAULT_REPO);
   deliverForks = true;
 }
 
 void fetchCommitActivity() {
-  commitActivity = CommitActivity.fetch("square", "picasso");
+  commitActivity = CommitActivity.fetch(DEFAULT_OWNER, DEFAULT_REPO);
   deliverCommitActivity = true;
+}
+
+void fetchCodeFrequency() {
+  codeFrequency = CodeFrequency.fetch(DEFAULT_OWNER, DEFAULT_REPO);
+  deliverCodeFrequency = true;
 }
 
 void table() {

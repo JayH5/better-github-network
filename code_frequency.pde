@@ -7,6 +7,12 @@ import java.util.List;
 
 static class CodeFrequency implements Iterable<Integer> {
   final List<Integer> days;
+  
+  static CodeFrequency fetch(String owner, String repo) {
+    JsonElement json = HttpClient.queryGithub("repos/" + owner + "/" + repo + "/stats/code_frequency", null);
+    return new CodeFrequency((JsonArray) json);
+  }
+  
   CodeFrequency(JsonArray json) {
     days = new ArrayList<Integer>(json.size() * 7);
     for (JsonElement jsonWeek : json) {
