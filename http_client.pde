@@ -60,7 +60,6 @@ static class HttpClient {
       }
     }
     try {
-      println(sb.toString());
       return new URL(sb.toString());
     } catch (MalformedURLException e) {
       println("Malformed URL!");

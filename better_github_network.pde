@@ -25,7 +25,7 @@ void setup() {
   table();
   thread("fetchRepo");
   thread("fetchForks");
-  //thread("fetchCommitActivity");
+  thread("fetchCommitActivity");
 }
 
 void draw() {
@@ -43,10 +43,6 @@ void draw() {
       int row = 0;
       for (Fork fork : forks) {
         text(fork.ownerLogin, 10, row * ROW_HEIGHT + ROW_HEIGHT / 2);
-        //get the commits from each fork
-        fork.fetchCommitActivity();
-        //draw commit activity
-        renderCommits( row, rows, fork);
         if (++row == rows) {
           break;
         }
@@ -55,6 +51,7 @@ void draw() {
     deliverForks = false;
   }
   if (deliverCommitActivity) {
+    data();
     if (commitActivity != null) {
       fill(0);
       int rows = height / ROW_HEIGHT;
@@ -84,11 +81,11 @@ void fetchForks() {
   deliverForks = true;
 }
 
-//void fetchCommitActivity() {
-//  JsonElement commitActivityJson = HttpClient.queryGithub("repos/square/picasso/stats/commit_activity", null);
-//  commitActivity = new CommitActivity((JsonArray) commitActivityJson);
-//  deliverCommitActivity = true;
-//}
+void fetchCommitActivity() {
+  JsonElement commitActivityJson = HttpClient.queryGithub("repos/square/picasso/stats/commit_activity", null);
+  commitActivity = new CommitActivity((JsonArray) commitActivityJson);
+  deliverCommitActivity = true;
+}
 
 void table() {
   noStroke();
@@ -111,14 +108,11 @@ void table() {
   }
 }
 
-void renderCommits(int i, int ROWS, Fork fork) {
+void data() {
   // Lines of random colour
   int alpha = 30;
-  //int ROWS = height / ROW_HEIGHT;
-  if (fork.isCommitted())
-  {
-  CommitActivity commitActivity_ = fork.getCommits();
-  
+  int ROWS = height / ROW_HEIGHT;
+  for (int i = 0; i < ROWS; i++) {
     strokeWeight(STROKE_WIDTH);
     strokeCap(ROUND);
     int colour = color(random(255), random(255), random(255));
@@ -135,16 +129,12 @@ void renderCommits(int i, int ROWS, Fork fork) {
     
     int count=0;
     float point = (WIDTH-120)/365;
-    for (int pew : commitActivity_){
+    for (int pew : commitActivity){
       count++;
       float drawPoint = count*point+110;
-      stroke(colour, pew*40);
+      stroke(colour, pew*30);
       line(drawPoint, top, drawPoint, bottom);
     }
-  }
-  else
-  {
-    println("Fork not commited yet");
   }
 }
 
