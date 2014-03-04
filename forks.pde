@@ -9,8 +9,19 @@ static class Forks implements Iterable<Fork> {
   final List<Fork> forks;
   
   static Forks fetch(String owner, String repo) {
-    JsonElement json = HttpClient.queryGithub("repos/" + owner + "/" + repo + "/forks", null);
-    return new Forks((JsonArray) json);
+    List<JsonElement> json =
+        HttpClient.queryGithubPaginated("repos/" + owner + "/" + repo + "/forks", null);
+    return new Forks(json);
+  }
+  
+  Forks(List<JsonElement> pages) {
+    forks = new ArrayList<Fork>();
+    for (JsonElement page : pages) {
+      JsonArray jsonForks = (JsonArray) page;
+      for (JsonElement jsonFork : jsonForks) {
+        forks.add(new Fork((JsonObject) jsonFork));
+      }
+    }
   }
   
   Forks(JsonArray jsonForks) {
