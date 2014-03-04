@@ -12,4 +12,13 @@ static class Branch {
     commitSha = commit.getAsJsonPrimitive("sha").getAsString();
     commitUrl = commit.getAsJsonPrimitive("url").getAsString();
   }
+  
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof Branch) {
+      Branch branch = (Branch) obj;
+      return name.equals(branch.name) && commitSha.equals(branch.commitSha);
+    }
+    return false;
+  }
 }

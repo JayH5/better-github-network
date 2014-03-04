@@ -36,4 +36,18 @@ static class Commit {
   Date getCommittedDate() {
     return parseDate(committedDate);
   }
+  
+  @Override
+  public int hashCode() {
+    return sha.hashCode();
+  }
+  
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof Commit) {
+      Commit commit = (Commit) obj;
+      return sha.equals(commit.sha);
+    }
+    return false;
+  }
 }
