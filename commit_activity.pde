@@ -7,7 +7,14 @@ import java.util.List;
 
 static class CommitActivity implements Iterable<Integer> {
   final List<Integer> days;
-  CommitActivity(JsonArray json) {    
+  
+  static CommitActivity fetch(String owner, String repo) {
+    JsonElement json =
+        HttpClient.queryGithub("repos/" + owner + "/" + repo + "/stats/commit_activity", null);
+    return new CommitActivity((JsonArray) json);
+  }
+  
+  CommitActivity(JsonArray json) {
     days = new ArrayList<Integer>(json.size() * 7);
     for (JsonElement weekJson : json) {
       JsonObject week = (JsonObject) weekJson;

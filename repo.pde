@@ -18,6 +18,11 @@ static class Repo {
 
   static final DateFormat ISO8601 =
       new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+      
+  static Repo fetch(String owner, String repo) {
+    JsonElement json = HttpClient.queryGithub("repos/" + owner + "/" + repo, null);
+    return new Repo((JsonObject) json);
+  }
 
   Repo(JsonObject jsonFork) {
     id = jsonFork.getAsJsonPrimitive("id").getAsLong();
@@ -38,4 +43,3 @@ static class Repo {
     return null;
   }
 }
-
