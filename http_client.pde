@@ -17,6 +17,7 @@ static class HttpClient {
   static final String GITHUB_API = "https://api.github.com/";
   static final int MAX_PAGES = 10;
   static final Pattern GITHUB_NEXT_LINK_PATTERN = Pattern.compile("<(.*)>; rel=\"next\"");
+  static final long RETRY_DELAY = 2000; // 2 seconds
   
   /** 
    * Perform a query against the Github API returning the JSON response.
@@ -33,8 +34,15 @@ static class HttpClient {
     JsonElement json = null;
     try {
       conn = openConnection(url);
-      if (conn.getResponseCode() == 200) {
+      int responseCode = conn.getResponseCode();
+      if (responseCode == 200) {
         json = parser.parse(new InputStreamReader(conn.getInputStream()));
+      } else if (responseCode == 202) { // Data not ready, wait a bit and try again
+        try {
+          Thread.sleep(RETRY_DELAY);
+        } catch (InterruptedException ignored) {
+        }
+        return queryJsonService(url);
       }
     } catch(IOException e) {
       println("Damn. Some kinda error occurred: " + e.getMessage());
