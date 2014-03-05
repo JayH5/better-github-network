@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-static class CodeFrequency implements Iterable<Integer> {
-  final List<Integer> days;
+static class CodeFrequency implements Iterable<CodeFrequency.Diff> {
+  final List<Diff> weeks;
   
   static CodeFrequency fetch(String owner, String repo) {
     JsonElement json = HttpClient.queryGithub("repos/" + owner + "/" + repo + "/stats/code_frequency", null);
@@ -14,16 +14,25 @@ static class CodeFrequency implements Iterable<Integer> {
   }
   
   CodeFrequency(JsonArray json) {
-    days = new ArrayList<Integer>(json.size() * 7);
+    weeks = new ArrayList<Diff>(json.size());
     for (JsonElement jsonWeek : json) {
-      JsonArray week = (JsonArray) jsonWeek;
-      for (JsonElement day : week) {
-        days.add(day.getAsInt());
-      }
+      weeks.add(new Diff((JsonArray) jsonWeek));
     }
   }
   
-  Iterator<Integer> iterator() {
-    return days.iterator();
+  Iterator<Diff> iterator() {
+    return weeks.iterator();
+  }
+  
+  static class Diff {
+    final Date week;
+    final int additions;
+    final int deletions;
+    
+    Diff(JsonArray json) {
+      week = new Date(json.get(0).getAsLong() * 1000);
+      additions = json.get(1).getAsInt();
+      deletions = json.get(2).getAsInt();
+    }
   }
 }
