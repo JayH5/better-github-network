@@ -21,3 +21,15 @@ static String getString(JsonObject obj, String key) {
 static int getInt(JsonObject obj, String key) {
   return obj.getAsJsonPrimitive(key).getAsInt();
 }
+
+void linearGradient(int x, int y, float w, float h, color c1, color c2) {
+  noFill();
+  float yh = y + h;
+  float xw = X + w;
+  for (int i = y; i <= yh; i++) {
+    float inter = map(i, y, yh, 0, 1);
+    color c = lerpColor(c1, c2, inter);
+    stroke(c);
+    line(x, i, xw, i);
+  }
+}

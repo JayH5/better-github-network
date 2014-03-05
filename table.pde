@@ -15,6 +15,7 @@ class Table
   
   final int REPO_HEIGHT = 70;
   final int COL_WIDTH = 120;
+  final int SHADOW_HEIGHT = 5;
   
   Row repo;
   
@@ -29,8 +30,9 @@ class Table
     this.y1 = y1;
     this.rows = rows;
 
-    drawRepo();
     drawTable();
+    drawRepo();
+    
     
     rowList = new ArrayList<Row>(rows);
   }
@@ -84,7 +86,11 @@ class Table
       String month = months[i];
       int offset = (int) ((month.length() / 3.0f) * 10);
       text(months[i], xStart - offset, textY);
-    }   
+    }
+   
+    // Draw gradient
+    linearGradient(x0, REPO_HEIGHT, x1 - x0, SHADOW_HEIGHT,
+        color(28, 30, 32, 128), color(28, 30, 32, 0));
   }
    
   void drawForks()
