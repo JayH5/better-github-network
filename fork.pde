@@ -6,6 +6,7 @@ import java.util.Date;
 
 static class Fork {
   final long id;
+  final String name;
   final String fullName;
   final String url;
   final String createdAt;
@@ -14,6 +15,7 @@ static class Fork {
 
   Fork(JsonObject jsonFork) {
     id = jsonFork.getAsJsonPrimitive("id").getAsLong();
+    name = getString(jsonFork, "name");
     fullName = jsonFork.getAsJsonPrimitive("full_name").getAsString();
     url = jsonFork.getAsJsonPrimitive("url").getAsString();    
     createdAt = jsonFork.getAsJsonPrimitive("created_at").getAsString();

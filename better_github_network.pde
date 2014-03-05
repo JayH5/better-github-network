@@ -14,11 +14,15 @@ int STROKE_WIDTH = 10;
 
 String DEFAULT_OWNER = "square";
 String DEFAULT_REPO = "picasso";
+String DEFAULT_BRANCH = "master";
+int NUMBER_FORK_BRANCHES = 2;
 
 Repo repo;
+Branches branches;
 CommitActivity commitActivity;
 CodeFrequency codeFrequency;
 boolean deliverRepo = false;
+boolean deliverBranches = false;
 boolean deliverCommitActivity = false;
 boolean deliverCodeFrequency = false;
 
@@ -34,6 +38,7 @@ void setup() {
 
   table();
   //thread("fetchRepo");
+  //thread("fetchBranches");
   //thread("fetchCommitActivity");
   //thread("fetchCodeFrequency");
   //thread("fetchForks");  
@@ -73,8 +78,14 @@ void checkDeliveries() {
           break;
         }
       }
+      //thread("fetchForkBranches");
     }
     deliverForks = false;
+  }
+  if (deliverForkBranches) {
+    if (forkBranches != null) {
+      // TODO: do something with branches
+    }
   }
 }
 
@@ -82,7 +93,11 @@ void fetchRepo() {
   repo = Repo.fetch(DEFAULT_OWNER, DEFAULT_REPO);
   deliverRepo = true;
 }
-  
+
+void fetchBranches() {
+  branches = Branches.fetch(DEFAULT_OWNER, DEFAULT_REPO);
+  deliverBranches = true;
+}  
 
 void fetchForks() {
   forks = Forks.fetch(DEFAULT_OWNER, DEFAULT_REPO);
@@ -98,6 +113,25 @@ void fetchCodeFrequency() {
   codeFrequency = CodeFrequency.fetch(DEFAULT_OWNER, DEFAULT_REPO);
   deliverCodeFrequency = true;
 }
+
+void fetchForkBranches() {
+  forkBranches = new HashMap<Fork, Branches>();
+  int forkCount = Math.min(forks.forks.size(), NUMBER_FORK_BRANCHES);
+  List<Fork> forksList = forks.forks.subList(0, forkCount);
+  for (Fork fork : forksList) {
+    forkBranches.put(fork, Branches.fetch(fork));
+  }
+  deliverForkBranches = true;
+}
+
+// WIP
+/*void fetchBranchCompare() {
+  for (Map.Entry forkBranch : forkBranches) {
+    Fork fork = (Fork) forkBranch.getKey();
+    Branches branches = (Branches) forkBranch.getValue();
+    String forkName = fork.ownerLogin;
+  }
+}*/
 
 void table() {
   noStroke();

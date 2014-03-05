@@ -5,6 +5,10 @@ import java.util.Iterator;
 
 static class Branches implements Iterable<Branch> {
   
+  static Branches fetch(Fork fork) {
+    return fetch(fork.ownerLogin, fork.name);
+  }
+  
   static Branches fetch(String owner, String repo) {
     JsonElement json = HttpClient.queryGithub("repos/" + owner + "/" + repo + "/branches", null);
     return new Branches((JsonArray) json);
