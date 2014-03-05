@@ -7,10 +7,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-int WIDTH = 1280;
-int HEIGHT = 720;
-int ROW_HEIGHT = 40;
-int STROKE_WIDTH = 10;
+int WIDTH = 1024;
+int HEIGHT = 600;
+int NUM_ROWS = 15;
 
 String DEFAULT_OWNER = "square";
 String DEFAULT_REPO = "picasso";
@@ -38,8 +37,7 @@ void setup() {
   background(255);
   smooth();
 
-  table = new Table();
-  table.drawTable(ROW_HEIGHT);
+  table = new Table(0, 0, width, height, NUM_ROWS);
   //table();
   //thread("fetchRepo");
   //thread("fetchBranches");
@@ -73,7 +71,7 @@ void checkDeliveries() {
   }
   if (deliverForks) {
     if (forks != null) {
-      fill(0);
+      /*fill(0);
       int rows = height / ROW_HEIGHT;
       int row = 0;
       for (Fork fork : forks) {
@@ -81,7 +79,7 @@ void checkDeliveries() {
         if (++row == rows) {
           break;
         }
-      }
+      }*/
       //thread("fetchForkBranches");
     }
     deliverForks = false;
