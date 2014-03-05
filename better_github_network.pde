@@ -31,12 +31,16 @@ Map<Fork, Branches> forkBranches;
 boolean deliverForks = false;
 boolean deliverForkBranches = false;
 
+Table table;
+
 void setup() {
   size(WIDTH, HEIGHT);
   background(255);
   smooth();
 
-  table();
+  table = new Table();
+  table.drawTable(ROW_HEIGHT);
+  //table();
   //thread("fetchRepo");
   //thread("fetchBranches");
   //thread("fetchCommitActivity");
@@ -133,25 +137,5 @@ void fetchForkBranches() {
   }
 }*/
 
-void table() {
-  noStroke();
-  int rows = height / ROW_HEIGHT;
-  for (int i = 0; i < rows; i++) {
-    if (i % 2 == 0) {
-      fill(140,190,253);
-    } else {
-      fill(120,170,220);
-    }
-    rect(0, i * ROW_HEIGHT, 100, (i + 1) * ROW_HEIGHT);
-  }
-
-  stroke(0);
-  noFill();
-
-  for (int i = 0; i < rows; i++) {
-    int y = i * ROW_HEIGHT;
-    line(0, y, width, y);
-  }
-}
 
 
