@@ -38,12 +38,13 @@ void setup() {
   smooth();
 
   table = new Table(0, 0, width, height, NUM_ROWS);
-  //table();
-  //thread("fetchRepo");
+  
+  // Fetch data
+  thread("fetchRepo");
   //thread("fetchBranches");
   //thread("fetchCommitActivity");
   //thread("fetchCodeFrequency");
-  //thread("fetchForks");  
+  //thread("fetchForks");  // Uncomment to fetch fork names
 }
 
 void draw() {
@@ -53,7 +54,7 @@ void draw() {
 void checkDeliveries() {
   if (deliverRepo) {
     if (repo != null) {
-      // TODO: Do something with repo data
+      table.setRepoName(repo.fullName);
     }
     deliverRepo = false;
   }
@@ -71,16 +72,11 @@ void checkDeliveries() {
   }
   if (deliverForks) {
     if (forks != null) {
-      /*fill(0);
-      int rows = height / ROW_HEIGHT;
-      int row = 0;
-      for (Fork fork : forks) {
-        text(fork.ownerLogin, 10, row * ROW_HEIGHT + ROW_HEIGHT / 2);
-        if (++row == rows) {
-          break;
-        }
-      }*/
-      //thread("fetchForkBranches");
+      List<Fork> forkList = forks.forks;
+      int rows = Math.min(forkList.size(), NUM_ROWS);
+      for (int i = 0; i < rows; i++) {
+        table.setForkName(i, forkList.get(i).ownerLogin);
+      } 
     }
     deliverForks = false;
   }

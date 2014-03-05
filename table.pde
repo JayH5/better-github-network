@@ -16,10 +16,10 @@ class Table
   final int REPO_HEIGHT = 70;
   final int COL_WIDTH = 120;
   final int SHADOW_HEIGHT = 5;
+  final int TEXT_VERTICAL_OFFSET = 5;
+  final int TEXT_HORIZONTAL_OFFSET = 10;
   
-  Row repo;
-  
-  final int x0, y0, x1, y1, rows;
+  final int x0, y0, x1, y1, rows, rowHeight;
   
   //constructor
   Table(int x0, int y0, int x1, int y1, int rows)
@@ -29,6 +29,9 @@ class Table
     this.x1 = x1;
     this.y1 = y1;
     this.rows = rows;
+    
+    // Calculate row height
+    rowHeight = (y1 - y0 - REPO_HEIGHT) / rows;
 
     drawTable();
     drawRepo();
@@ -37,9 +40,15 @@ class Table
     rowList = new ArrayList<Row>(rows);
   }
   
-  void setRepo(String repo_name, List<Integer> activityList)
-  {
-    repo = new Row(repo_name, activityList);
+  void setRepoName(String name) {
+    fill(0);
+    text(name, TEXT_HORIZONTAL_OFFSET, REPO_HEIGHT / 2 + TEXT_VERTICAL_OFFSET);
+  }
+  
+  void setForkName(int row, String name) {
+    fill(0);
+    int y = REPO_HEIGHT + rowHeight * row + rowHeight / 2 + TEXT_VERTICAL_OFFSET;
+    text(name, TEXT_HORIZONTAL_OFFSET, y);
   }
   
   void addRow(String fork_name, List<Integer> activityList)
@@ -114,8 +123,7 @@ class Table
     stroke(0);
     strokeWeight(1);
     noFill();
-
-    for (int i = 1; i < rows; i++) {
+    for (int i = 1; i <= rows; i++) {
       int y = i * rowHeight + REPO_HEIGHT;
       line(0, y, width, y);
     }
