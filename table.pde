@@ -115,35 +115,40 @@ class Table
     int yMidGraph = y0Graph + halfGraphHeight;
     
     // Draw additions
-    beginShape();
-    stroke(0, 255, 0);
+    noStroke();
+    fill(102, 153, 0, 128);
+    beginShape();   
     for (int week = 0; week < weeks; week++) {
       int x = x0Graph + (int) (weekWidth * week);
       
       int additions = codeFrequency.get(week).additions;
       float additionIntensity = (float) additions / maxAdditions;
-      int y = yMidGraph + (int) (halfGraphHeight * additionIntensity);
+      int y = yMidGraph - (int) (halfGraphHeight * additionIntensity);
       
       println("Drawing curve vertex at (" + x + "," + y + ") for week " + week);
       
       curveVertex(x, y);
     }
+    vertex(x1Graph, yMidGraph);
+    vertex(x0Graph, yMidGraph); 
     endShape();
     
     // Draw deletions
+    fill(204, 0, 0, 128);
     beginShape();
-    stroke(255, 0, 0);
     for (int week = 0; week < weeks; week++) {
       int x = x0Graph + (int) (weekWidth * week);
       
       int deletions = codeFrequency.get(week).additions;
       float deletionIntensity = (float) deletions / maxDeletions;
-      int y = yMidGraph + (int) (halfGraphHeight * deletionIntensity);
+      int y = yMidGraph - (int) (halfGraphHeight * deletionIntensity);
       
       println("Drawing curve vertex at (" + x + "," + y + ") for week " + week);
       
       curveVertex(x, y);
     }
+    vertex(x1Graph, yMidGraph);
+    vertex(x0Graph, yMidGraph);
     endShape();
   }
   

@@ -42,7 +42,6 @@ void setup() {
   // Fetch data
   thread("fetchRepo");
   thread("fetchCommitActivity");
-  thread("fetchCodeFrequency");
   thread("fetchForks");
 }
 
@@ -61,6 +60,7 @@ void checkDeliveries() {
     if (commitActivity != null) {
       table.setRepoCommitActivity(commitActivity);
     }
+    thread("fetchCodeFrequency");
     deliverCommitActivity = false;
   }
   if (deliverCodeFrequency) {
