@@ -10,7 +10,6 @@ import java.util.Date;
 class Table
 {
   final int ROWS=10, ROW_HEIGHT=10,HEIGHT=720;
-  final ArrayList<Row> rowList;
   final String[] months = { "Apr '13", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan '14", "Feb", "Mar" };
   
   final int REPO_HEIGHT = 100;
@@ -20,11 +19,16 @@ class Table
   final int TEXT_HORIZONTAL_OFFSET = 10;
   
   final int MAX_COMMIT_ALPHA = 192;
-  final int MIN_COMMIT_ALPHA = 40;
+  final int MIN_COMMIT_ALPHA = 20;
+  
+  final color[] FORK_COLORS = new color[] { #33B5E5, #AA66CC, #99CC00, #FFBB33, #FF4444 };
   
   final int x0, y0, x1, y1, rows, rowHeight;
   
   final int x0Graph, y0Graph, x1Graph, y1Graph;
+  
+  final PFont inconsolata;
+  final PFont geneva;
   
   //constructor
   Table(int x0, int y0, int x1, int y1, int rows)
@@ -48,14 +52,17 @@ class Table
     x1Graph = x1 - paddingGraphRight;
     y1Graph = y0 + REPO_HEIGHT - paddingGraphBottom;
 
+    inconsolata = loadFont("Inconsolata-14.vlw");
+    geneva = loadFont("Geneva-14.vlw");
+
     drawTable();
-    drawRepo();    
-    
-    rowList = new ArrayList<Row>(rows);
+    drawRepo();
+    drawForks();    
   }
   
   void setRepoName(String name) {
     fill(0);
+    textFont(inconsolata, 14);
     text(name, TEXT_HORIZONTAL_OFFSET, REPO_HEIGHT / 2 + TEXT_VERTICAL_OFFSET);
   }
   
@@ -127,8 +134,6 @@ class Table
       additionIntensity = decelerateInterpolator(additionIntensity);
       int y = yMidGraph - Math.round(halfGraphHeight * additionIntensity);
       
-      println("Drawing curve vertex at (" + x + "," + y + ") for week " + week);
-      
       curveVertex(x, y);
     }
     vertex(x1Graph, yMidGraph);
@@ -147,8 +152,6 @@ class Table
       deletionIntensity = decelerateInterpolator(deletionIntensity);
       int y = yMidGraph + Math.round(halfGraphHeight * deletionIntensity);
       
-      println("Drawing curve vertex at (" + x + "," + y + ") for week " + week);
-      
       curveVertex(x, y);
     }
     vertex(x1Graph, yMidGraph);
@@ -163,12 +166,8 @@ class Table
   void setForkName(int row, String name) {
     fill(0);
     int y = REPO_HEIGHT + rowHeight * row + rowHeight / 2 + TEXT_VERTICAL_OFFSET;
+    textFont(inconsolata, 14);
     text(name, TEXT_HORIZONTAL_OFFSET, y);
-  }
-  
-  void addRow(String fork_name, List<Integer> activityList)
-  {
-    rowList.add(new Row(fork_name, activityList));
   }
 
   //Draw repo stats with Months below
@@ -181,6 +180,7 @@ class Table
     rect(0, 0, width, REPO_HEIGHT);
     fill(255, 192);
     rect(0, 0, COL_WIDTH, REPO_HEIGHT);
+    textFont(geneva, 13);
     
     int ruleY0 = y0 + REPO_HEIGHT - 5;
     int markY0 = y0 + REPO_HEIGHT - 3;
@@ -229,10 +229,83 @@ class Table
     int y = y0Graph + h / 2;
     line(x0Graph, y, x1Graph, y);
   }
-   
-  void drawForks()
-  {
-   
+  
+  // Generate some random data for each fork
+  void drawForks() {   
+    // Generate start positions, we start with most recent commit
+    List<Integer> commits = new ArrayList<Integer>();    
+    int offsetRange = 65;
+    int days = 364;
+    int start = days;
+    int averageLength = 30;
+    int averageNumCommits = 2;
+    for (int i = 0; i < rows; i++) {
+      commits.clear();
+      
+      // Add a start
+      start -= (int) (offsetRange * random(1));
+      start = Math.max(0, start);
+      commits.add(start);
+      
+      // Calculate an end
+      int end = start + (int) (averageLength * random(0, 6));
+      end = Math.min(days, end);
+      
+      // Add some commits in-between
+      int range = end - start;
+      int numCommits = (int) (averageNumCommits * random(0, 3));
+      for (int j = 0; j < numCommits; j++) {
+        int pos = start + (int) (range * random(1));
+        commits.add(pos);
+      }
+      
+      // Cap it off with the end
+      commits.add(end);
+      
+      drawFork(i, commits);
+    }
+  }
+ 
+  void drawFork(int row, List<Integer> commits) {
+    // Pick a colour based on the row
+    color col = FORK_COLORS[row % FORK_COLORS.length];
+    
+    int yStart = y0 + REPO_HEIGHT + rowHeight * row;
+    int yMid = yStart + rowHeight / 2;
+    
+    // Constants
+    int startPointHeight = 10;
+    float dayWidth = (float) (x1Graph - x0Graph) / 364;
+    int xOffset = x0 + COL_WIDTH;  
+    
+    int numCommits = commits.size();
+    
+    int firstCommit = commits.get(0);
+    int xStart = xOffset + (int) (firstCommit * dayWidth);
+    int diameter = 7;
+    noStroke();
+    fill(col);
+    
+    if (firstCommit > 0) {
+      ellipse(xStart, yMid, diameter, diameter);
+    }
+    
+    int lastCommit = commits.get(numCommits - 1);
+    int xEnd = xOffset + (int) (lastCommit * dayWidth);    
+    ellipse(xEnd, yMid, diameter, diameter);
+    
+    noFill();
+    stroke(col);
+    strokeWeight(3);
+    line(xStart, yMid, xEnd, yMid);
+    
+    strokeWeight(2);
+    int top = yMid + 3;
+    int bottom = yMid - 3;
+    for (int i = 1; i < numCommits - 1; i++) {
+      int x = xOffset + (int) (commits.get(i) * dayWidth);
+      line(x, top, x, bottom);
+    }
   }
    
   
@@ -255,17 +328,5 @@ class Table
       int y = i * rowHeight + REPO_HEIGHT;
       line(0, y, width, y);
     }
-  }
-  
-  class Row
-  {
-    String name;
-    List<Integer> acitivityList;
-    
-    Row(String name, List<Integer> acitivityList)
-    {
-      this.name = name; 
-      this.acitivityList = acitivityList;      
-    }    
   }
 }
