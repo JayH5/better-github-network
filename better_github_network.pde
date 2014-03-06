@@ -9,7 +9,7 @@ import java.util.Map;
 
 int WIDTH = 1024;
 int HEIGHT = 600;
-int NUM_ROWS = 15;
+int NUM_ROWS = 12;
 
 String DEFAULT_OWNER = "square";
 String DEFAULT_REPO = "picasso";

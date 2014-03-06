@@ -13,14 +13,14 @@ class Table
   final ArrayList<Row> rowList;
   final String[] months = { "Apr '13", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan '14", "Feb", "Mar" };
   
-  final int REPO_HEIGHT = 70;
+  final int REPO_HEIGHT = 100;
   final int COL_WIDTH = 120;
   final int SHADOW_HEIGHT = 5;
   final int TEXT_VERTICAL_OFFSET = 5;
   final int TEXT_HORIZONTAL_OFFSET = 10;
   
   final int MAX_COMMIT_ALPHA = 192;
-  final int MIN_COMMIT_ALPHA = 20;
+  final int MIN_COMMIT_ALPHA = 40;
   
   final int x0, y0, x1, y1, rows, rowHeight;
   
@@ -38,7 +38,7 @@ class Table
     // Calculate row height
     rowHeight = (y1 - y0 - REPO_HEIGHT) / rows;
 
-    int paddingGraphTop = 15;
+    int paddingGraphTop = 10;
     int paddingGraphBottom = 25;
     int paddingGraphLeft = 40;
     int paddingGraphRight = 10;
@@ -100,8 +100,8 @@ class Table
   
   void setRepoCodeFrequency(CodeFrequency codeFrequency) {
     // Get the max additions/deletions
-    int maxAdditions = Integer.MIN_VALUE;
-    int maxDeletions = Integer.MAX_VALUE;
+    int maxAdditions = 0;
+    int maxDeletions = 0;
     for(CodeFrequency.Diff diff : codeFrequency) {
       maxAdditions = Math.max(diff.additions, maxAdditions);
       maxDeletions = Math.min(diff.deletions, maxDeletions);
@@ -117,13 +117,15 @@ class Table
     // Draw additions
     noStroke();
     fill(102, 153, 0, 128);
-    beginShape();   
+    beginShape();
+    vertex(x0Graph, yMidGraph);
     for (int week = 0; week < weeks; week++) {
       int x = x0Graph + (int) (weekWidth * week);
       
       int additions = codeFrequency.get(week).additions;
       float additionIntensity = (float) additions / maxAdditions;
-      int y = yMidGraph - (int) (halfGraphHeight * additionIntensity);
+      additionIntensity = decelerateInterpolator(additionIntensity);
+      int y = yMidGraph - Math.round(halfGraphHeight * additionIntensity);
       
       println("Drawing curve vertex at (" + x + "," + y + ") for week " + week);
       
@@ -136,12 +138,14 @@ class Table
     // Draw deletions
     fill(204, 0, 0, 128);
     beginShape();
+    vertex(x0Graph, yMidGraph);
     for (int week = 0; week < weeks; week++) {
       int x = x0Graph + (int) (weekWidth * week);
       
-      int deletions = codeFrequency.get(week).additions;
+      int deletions = codeFrequency.get(week).deletions;
       float deletionIntensity = (float) deletions / maxDeletions;
-      int y = yMidGraph - (int) (halfGraphHeight * deletionIntensity);
+      deletionIntensity = decelerateInterpolator(deletionIntensity);
+      int y = yMidGraph + Math.round(halfGraphHeight * deletionIntensity);
       
       println("Drawing curve vertex at (" + x + "," + y + ") for week " + week);
       
@@ -150,6 +154,10 @@ class Table
     vertex(x1Graph, yMidGraph);
     vertex(x0Graph, yMidGraph);
     endShape();
+  }
+  
+  float decelerateInterpolator(float input) {
+    return (float)(1.0f - (1.0f - input) * (1.0f - input));
   }
   
   void setForkName(int row, String name) {
@@ -213,6 +221,13 @@ class Table
     int w = x1Graph - x0Graph;
     int h = y1Graph - y0Graph;
     rect(x0Graph, y0Graph, w, h, 4, 0, 0, 4);
+    
+    // Draw line down middle of graph
+    noFill();
+    stroke(0, 120);
+    strokeWeight(1);
+    int y = y0Graph + h / 2;
+    line(x0Graph, y, x1Graph, y);
   }
    
   void drawForks()
