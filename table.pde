@@ -19,7 +19,12 @@ class Table
   final int TEXT_VERTICAL_OFFSET = 5;
   final int TEXT_HORIZONTAL_OFFSET = 10;
   
+  final int MAX_COMMIT_ALPHA = 192;
+  final int MIN_COMMIT_ALPHA = 20;
+  
   final int x0, y0, x1, y1, rows, rowHeight;
+  
+  final int x0Graph, y0Graph, x1Graph, y1Graph;
   
   //constructor
   Table(int x0, int y0, int x1, int y1, int rows)
@@ -33,9 +38,18 @@ class Table
     // Calculate row height
     rowHeight = (y1 - y0 - REPO_HEIGHT) / rows;
 
-    drawTable();
-    drawRepo();
+    int paddingGraphTop = 15;
+    int paddingGraphBottom = 25;
+    int paddingGraphLeft = 40;
+    int paddingGraphRight = 10;
     
+    x0Graph = x0 + paddingGraphLeft + COL_WIDTH;
+    y0Graph = y0 + paddingGraphTop;
+    x1Graph = x1 - paddingGraphRight;
+    y1Graph = y0 + REPO_HEIGHT - paddingGraphBottom;
+
+    drawTable();
+    drawRepo();    
     
     rowList = new ArrayList<Row>(rows);
   }
@@ -43,6 +57,45 @@ class Table
   void setRepoName(String name) {
     fill(0);
     text(name, TEXT_HORIZONTAL_OFFSET, REPO_HEIGHT / 2 + TEXT_VERTICAL_OFFSET);
+  }
+  
+  void setRepoCommitActivity(CommitActivity commitActivity) {
+    int days = commitActivity.size();
+    
+    // Loop through days, find min/max commits
+    int minCommits = Integer.MAX_VALUE;
+    int maxCommits = Integer.MIN_VALUE;
+    for (int day : commitActivity) {
+      if (day != 0) {
+        minCommits = Math.min(day, minCommits);
+        maxCommits = Math.max(day, maxCommits);
+      }
+    }
+    
+    // Calculate the range of commit alpha values
+    int commitRange = maxCommits - minCommits;
+    int alphaRange = MAX_COMMIT_ALPHA - MIN_COMMIT_ALPHA;
+    
+    // Calculate the width of a day in the graph
+    float dayWidth = (float) (x1Graph - x0Graph) / days;
+    
+    // Set up to draw
+    noFill();
+    strokeWeight(dayWidth);
+    
+    // Calculate positions
+    for (int day = 0; day < days; day++) {
+      int commits = commitActivity.get(day);
+      if (day == 0) {
+        continue;
+      }
+      
+      int x = x0Graph + (int) (day * dayWidth + dayWidth / 2);
+      float commitIntensity = (float) (commits - minCommits) / commitRange;
+      int alpha = (int) (MIN_COMMIT_ALPHA + commitIntensity * alphaRange);
+      stroke(0, alpha);
+      line(x, y0Graph, x, y1Graph);
+    }
   }
   
   void setForkName(int row, String name) {
@@ -67,15 +120,14 @@ class Table
     fill(255, 192);
     rect(0, 0, COL_WIDTH, REPO_HEIGHT);
     
-    int ruleY0 = REPO_HEIGHT - 5;
-    int markY0 = REPO_HEIGHT - 3;
-    int textY = REPO_HEIGHT - 10;
+    int ruleY0 = y0 + REPO_HEIGHT - 5;
+    int markY0 = y0 + REPO_HEIGHT - 3;
+    int textY = y0 + REPO_HEIGHT - 10;
     int monthWidth = (x1 - x0 - COL_WIDTH) / 12;
     int monthMarks = monthWidth / 5;
-    int padding = 40;
     for (int i = 0; i < 12; i++)
     {
-      int xStart = x0 + padding + COL_WIDTH + monthWidth * i;
+      int xStart = x0Graph + monthWidth * i;
       
       // Draw ruler measure
       stroke(192);
@@ -101,11 +153,12 @@ class Table
     linearGradient(x0, REPO_HEIGHT, x1 - x0, SHADOW_HEIGHT,
         color(28, 30, 32, 128), color(28, 30, 32, 0));
         
-    int paddingVisTop = 15;
-    int paddingVisBottom = 40;
-    int paddingVisRight = 10;
+    // Draw graph area    
     fill(255);
-    rect(x0 + padding + COL_WIDTH, paddingVisTop, x1 - paddingVisRight, REPO_HEIGHT - paddingVisBottom);
+    noStroke();
+    int w = x1Graph - x0Graph;
+    int h = y1Graph - y0Graph;
+    rect(x0Graph, y0Graph, w, h, 4, 0, 0, 4);
   }
    
   void drawForks()

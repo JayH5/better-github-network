@@ -28,4 +28,12 @@ static class CommitActivity implements Iterable<Integer> {
   Iterator<Integer> iterator() {
     return days.iterator();
   }
+  
+  public int size() {
+    return days.size();
+  }
+  
+  public int get(int position) {
+    return days.get(position);
+  }
 }
