@@ -35,6 +35,7 @@ static class HttpClient {
     try {
       conn = openConnection(url);
       int responseCode = conn.getResponseCode();
+      println("Connection opened to url " + url + " with response code " + responseCode);
       if (responseCode == 200) {
         json = parser.parse(new InputStreamReader(conn.getInputStream()));
       } else if (responseCode == 202) { // Data not ready, wait a bit and try again
@@ -54,32 +55,56 @@ static class HttpClient {
     return json;
   }
   
-  static List<JsonElement> queryGithubPaginated(String path, Map<String, String> params) {
+  /**
+   * Query github for a paginated response (e.g. list of forks).
+   * @param required the minimum number of elements desired. Once this required number is met no
+   *   further pages will be downloaded.
+   */
+  static List<JsonArray> queryGithubPaginated(String path, Map<String, String> params, int required) {
     JsonParser parser = new JsonParser();
-    List<JsonElement> pages = new ArrayList<JsonElement>();
+    List<JsonArray> pages = new ArrayList<JsonArray>();
     
     URL currentURL = buildURL(GITHUB_API, path, params);
+    int count = 0;
     // Loop through the pages while URL not null and we haven't reached MAX_PAGES
-    for (int i = 0; i < MAX_PAGES && currentURL != null; i++) {
+    for (int i = 0; i < MAX_PAGES; i++) {
+      if (currentURL == null) {
+        break;
+      }
+      println("Fetching page " + i);
+      
       HttpURLConnection conn = null;
       JsonElement json = null;
       try {
         // Connect to the URL
         conn = openConnection(currentURL);
-        if (conn != null && conn.getResponseCode() == 200) {
+        int responseCode = conn.getResponseCode();
+        println("Connection opened to url " + currentURL + " with response code " + responseCode);
+        if (conn != null && responseCode == 200) {
           // If successful parse the JSON response
           json = parser.parse(new InputStreamReader(conn.getInputStream()));
+          JsonArray jsonArray = (JsonArray) json;
           // If JSON parsed ok, add it to the list of pages
-          if (json != null) {
-            pages.add(json);
+          if (jsonArray != null) {
+            int len = jsonArray.size();
+            println("Page downloaded with length " + len);
+            count += len;
+            println("Elements downloaded: " + count + "/" + required);
+            pages.add(jsonArray);
+            
+            if (count >= required) {
+              break;
+            }
           }
-          // Get the URL for the next page from the headers
-          currentURL = parseNextGithubLink(conn.getHeaderField("Link"));
-        } else {
-          currentURL = null;
         }
+        // Get the URL for the next page from the headers
+        currentURL = parseNextGithubLink(conn.getHeaderField("Link"));
+        println("Link to next page: " + currentURL);
       } catch (IOException e) {
         println("Connection error! " + e.getMessage());
+        break;
+      } catch (ClassCastException e) {
+        println("Received JSON was not an array!");
         break;
       } finally {
         if (conn != null) {

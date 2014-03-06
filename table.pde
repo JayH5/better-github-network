@@ -100,6 +100,12 @@ class Table
     // Draw gradient
     linearGradient(x0, REPO_HEIGHT, x1 - x0, SHADOW_HEIGHT,
         color(28, 30, 32, 128), color(28, 30, 32, 0));
+        
+    int paddingVisTop = 15;
+    int paddingVisBottom = 40;
+    int paddingVisRight = 10;
+    fill(255);
+    rect(x0 + padding + COL_WIDTH, paddingVisTop, x1 - paddingVisRight, REPO_HEIGHT - paddingVisBottom);
   }
    
   void drawForks()

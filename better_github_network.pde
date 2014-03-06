@@ -44,7 +44,7 @@ void setup() {
   //thread("fetchBranches");
   //thread("fetchCommitActivity");
   //thread("fetchCodeFrequency");
-  //thread("fetchForks");  // Uncomment to fetch fork names
+  thread("fetchForks");
 }
 
 void draw() {
@@ -88,31 +88,42 @@ void checkDeliveries() {
 }
 
 void fetchRepo() {
+  println("Fetching repo...");
   repo = Repo.fetch(DEFAULT_OWNER, DEFAULT_REPO);
+  println("Repo delivered");
   deliverRepo = true;
 }
 
 void fetchBranches() {
+  println("Fetching branches...");
   branches = Branches.fetch(DEFAULT_OWNER, DEFAULT_REPO);
+  println("Branches delivered");
   deliverBranches = true;
 }  
 
 void fetchForks() {
-  forks = Forks.fetch(DEFAULT_OWNER, DEFAULT_REPO);
+  println("Fetching forks...");
+  forks = Forks.fetch(DEFAULT_OWNER, DEFAULT_REPO, NUM_ROWS);
+  println("Forks delivered");
   deliverForks = true;
 }
 
 void fetchCommitActivity() {
+  println("Fetching commit activity...");
   commitActivity = CommitActivity.fetch(DEFAULT_OWNER, DEFAULT_REPO);
+  println("Commit activity delivered");
   deliverCommitActivity = true;
 }
 
 void fetchCodeFrequency() {
+  println("Fetching code frequency...");
   codeFrequency = CodeFrequency.fetch(DEFAULT_OWNER, DEFAULT_REPO);
+  println("Code frequency delivered");
   deliverCodeFrequency = true;
 }
 
 void fetchForkBranches() {
+  println("Fetching branches...");
   forkBranches = new HashMap<Fork, Branches>();
   int forkCount = Math.min(forks.forks.size(), NUMBER_FORK_BRANCHES);
   List<Fork> forksList = forks.forks.subList(0, forkCount);
