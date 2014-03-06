@@ -98,6 +98,55 @@ class Table
     }
   }
   
+  void setRepoCodeFrequency(CodeFrequency codeFrequency) {
+    // Get the max additions/deletions
+    int maxAdditions = Integer.MIN_VALUE;
+    int maxDeletions = Integer.MAX_VALUE;
+    for(CodeFrequency.Diff diff : codeFrequency) {
+      maxAdditions = Math.max(diff.additions, maxAdditions);
+      maxDeletions = Math.min(diff.deletions, maxDeletions);
+    }
+    
+    int weeks = codeFrequency.size();
+    float weekWidth = (float) (x1Graph - x0Graph) / weeks;
+    
+    noFill();
+    int halfGraphHeight = (y1Graph - y0Graph) / 2;
+    int yMidGraph = y0Graph + halfGraphHeight;
+    
+    // Draw additions
+    beginShape();
+    stroke(0, 255, 0);
+    for (int week = 0; week < weeks; week++) {
+      int x = x0Graph + (int) (weekWidth * week);
+      
+      int additions = codeFrequency.get(week).additions;
+      float additionIntensity = (float) additions / maxAdditions;
+      int y = yMidGraph + (int) (halfGraphHeight * additionIntensity);
+      
+      println("Drawing curve vertex at (" + x + "," + y + ") for week " + week);
+      
+      curveVertex(x, y);
+    }
+    endShape();
+    
+    // Draw deletions
+    beginShape();
+    stroke(255, 0, 0);
+    for (int week = 0; week < weeks; week++) {
+      int x = x0Graph + (int) (weekWidth * week);
+      
+      int deletions = codeFrequency.get(week).additions;
+      float deletionIntensity = (float) deletions / maxDeletions;
+      int y = yMidGraph + (int) (halfGraphHeight * deletionIntensity);
+      
+      println("Drawing curve vertex at (" + x + "," + y + ") for week " + week);
+      
+      curveVertex(x, y);
+    }
+    endShape();
+  }
+  
   void setForkName(int row, String name) {
     fill(0);
     int y = REPO_HEIGHT + rowHeight * row + rowHeight / 2 + TEXT_VERTICAL_OFFSET;

@@ -42,7 +42,7 @@ void setup() {
   // Fetch data
   thread("fetchRepo");
   thread("fetchCommitActivity");
-  //thread("fetchCodeFrequency");
+  thread("fetchCodeFrequency");
   thread("fetchForks");
 }
 
@@ -65,7 +65,7 @@ void checkDeliveries() {
   }
   if (deliverCodeFrequency) {
     if (codeFrequency != null) {
-      // TODO: display code frequency
+      table.setRepoCodeFrequency(codeFrequency);
     }
     deliverCodeFrequency = false;
   }

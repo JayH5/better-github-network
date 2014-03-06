@@ -24,6 +24,14 @@ static class CodeFrequency implements Iterable<CodeFrequency.Diff> {
     return weeks.iterator();
   }
   
+  public int size() {
+    return weeks.size();
+  }
+  
+  public Diff get(int position) {
+    return weeks.get(position);
+  }
+  
   static class Diff {
     final Date week;
     final int additions;
