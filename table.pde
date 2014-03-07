@@ -28,7 +28,6 @@ class Table
   final int x0Graph, y0Graph, x1Graph, y1Graph;
   
   final PFont inconsolata;
-  final PFont geneva;
   
   //constructor
   Table(int x0, int y0, int x1, int y1, int rows)
@@ -53,7 +52,6 @@ class Table
     y1Graph = y0 + REPO_HEIGHT - paddingGraphBottom;
 
     inconsolata = loadFont("Inconsolata-14.vlw");
-    geneva = loadFont("Geneva-14.vlw");
 
     drawTable();
     drawRepo();
@@ -180,7 +178,6 @@ class Table
     rect(0, 0, width, REPO_HEIGHT);
     fill(255, 192);
     rect(0, 0, COL_WIDTH, REPO_HEIGHT);
-    textFont(geneva, 13);
     
     int ruleY0 = y0 + REPO_HEIGHT - 5;
     int markY0 = y0 + REPO_HEIGHT - 3;
