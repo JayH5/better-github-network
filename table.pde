@@ -91,7 +91,7 @@ class Table
     // Calculate positions
     for (int day = 0; day < days; day++) {
       int commits = commitActivity.get(day);
-      if (day == 0) {
+      if (commits == 0) {
         continue;
       }
       
