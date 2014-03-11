@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 static class HttpClient {
   
   static final String GITHUB_API = "https://api.github.com/";
+  static final String GITHUB_OLD_API = "http://github.com/";
   static final int MAX_PAGES = 10;
   static final Pattern GITHUB_NEXT_LINK_PATTERN = Pattern.compile("<(.*)>; rel=\"next\"");
   static final long RETRY_DELAY = 2000; // 2 seconds
