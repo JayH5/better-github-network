@@ -30,6 +30,11 @@ Map<Fork, Branches> forkBranches;
 boolean deliverForks = false;
 boolean deliverForkBranches = false;
 
+NetworkMeta networkMeta;
+NetworkDataChunk networkDataChunk;
+boolean deliverNetworkMeta = false;
+boolean deliverNetworkDataChunk = false;
+
 Table table;
 
 void setup() {
@@ -42,7 +47,8 @@ void setup() {
   // Fetch data
   thread("fetchRepo");
   thread("fetchCommitActivity");
-  thread("fetchForks");
+  //thread("fetchForks");
+  thread("fetchNetworkMeta");
 }
 
 void draw() {
@@ -85,6 +91,19 @@ void checkDeliveries() {
       // TODO: do something with branches
     }
   }
+  
+  if (deliverNetworkMeta) {
+    if (networkMeta != null) {
+      List<NetworkMeta.Block> blocks = networkMeta.blocks;
+      int rows = Math.min(blocks.size() - 1, NUM_ROWS);
+      for (int i = 0; i < rows; i++) {
+        table.setForkName(i, blocks.get(i + 1).name);
+      } 
+    }
+  }
+  if (deliverNetworkDataChunk) {
+    // TODO: do something with the network data
+  }
 }
 
 void fetchRepo() {
@@ -106,6 +125,13 @@ void fetchForks() {
   forks = Forks.fetch(DEFAULT_OWNER, DEFAULT_REPO, NUM_ROWS);
   println("Forks delivered");
   deliverForks = true;
+}
+
+void fetchNetworkMeta() {
+  println("Fetching network meta...");
+  networkMeta = NetworkMeta.fetch(DEFAULT_OWNER, DEFAULT_REPO);
+  println("Network meta delivered");
+  deliverNetworkMeta = true;
 }
 
 void fetchCommitActivity() {

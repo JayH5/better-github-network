@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 static class HttpClient {
   
   static final String GITHUB_API = "https://api.github.com/";
+  static final String GITHUB_OLD_API = "https://github.com/";
   static final int MAX_PAGES = 10;
   static final Pattern GITHUB_NEXT_LINK_PATTERN = Pattern.compile("<(.*)>; rel=\"next\"");
   static final long RETRY_DELAY = 2000; // 2 seconds
@@ -41,6 +42,7 @@ static class HttpClient {
       } else if (responseCode == 202) { // Data not ready, wait a bit and try again
         try {
           Thread.sleep(RETRY_DELAY);
+          return queryJsonService(url);
         } catch (InterruptedException ignored) {
         }
         return queryJsonService(url);
@@ -142,7 +144,7 @@ static class HttpClient {
   
   private static HttpURLConnection openConnection(URL url) throws IOException {
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-    conn.setFollowRedirects(true);
+    conn.setInstanceFollowRedirects(true);
     return conn;
   }
   
