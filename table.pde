@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 class Table
@@ -29,6 +30,9 @@ class Table
   
   final PFont inconsolata;
   
+  final Date dateNow;
+  final Date dateYearAgo;
+  
   //constructor
   Table(int x0, int y0, int x1, int y1, int rows)
   {
@@ -43,8 +47,8 @@ class Table
 
     int paddingGraphTop = 10;
     int paddingGraphBottom = 25;
-    int paddingGraphLeft = 40;
-    int paddingGraphRight = 10;
+    int paddingGraphLeft = 0;
+    int paddingGraphRight = 0;
     
     x0Graph = x0 + paddingGraphLeft + COL_WIDTH;
     y0Graph = y0 + paddingGraphTop;
@@ -52,10 +56,15 @@ class Table
     y1Graph = y0 + REPO_HEIGHT - paddingGraphBottom;
 
     inconsolata = loadFont("Inconsolata-14.vlw");
+    
+    dateNow = new Date();
+    Calendar cal = Calendar.getInstance();
+    cal.add(Calendar.YEAR, -1);
+    dateYearAgo = cal.getTime();
 
     drawTable();
     drawRepo();
-    drawForks();    
+    //drawForks();    
   }
   
   void setRepoName(String name) {
@@ -217,7 +226,7 @@ class Table
     noStroke();
     int w = x1Graph - x0Graph;
     int h = y1Graph - y0Graph;
-    rect(x0Graph, y0Graph, w, h, 4, 0, 0, 4);
+    //rect(x0Graph, y0Graph, w, h, 4, 0, 0, 4);
     
     // Draw line down middle of graph
     noFill();
@@ -225,6 +234,87 @@ class Table
     strokeWeight(1);
     int y = y0Graph + h / 2;
     line(x0Graph, y, x1Graph, y);
+  }
+  
+  void setBlockData(int row, List<NetworkDataChunk.Commit> commits) {
+    Collections.sort(commits);
+    int numCommits = commits.size(); 
+    
+    // Find first commit within past year
+    NetworkDataChunk.Commit firstCommit = commits.get(0);
+    int firstCommitPos = 0;
+    boolean startsBeforeYearAgo = false;
+    if (firstCommit.getDate().before(dateYearAgo)) {
+      startsBeforeYearAgo = true;
+      for (; firstCommitPos < numCommits; firstCommitPos++) {
+        firstCommit = commits.get(firstCommitPos);
+        if (firstCommit.getDate().after(dateYearAgo)) {
+          break;
+        }
+      }
+    }
+    
+    // Pick a colour based on the row
+    color col = FORK_COLORS[row % FORK_COLORS.length];
+    
+    int yStart = y0 + REPO_HEIGHT + rowHeight * row;
+    int yMid = yStart + rowHeight / 2;
+    
+    int w = x1Graph - x0Graph;
+    
+    int diameter = 7;
+    
+    NetworkDataChunk.Commit lastCommit = commits.get(numCommits - 1);
+    int xEnd = x0Graph + (int) (w * getRelativeTime(lastCommit.getDate()));    
+    noStroke();
+    fill(col);
+    ellipse(xEnd, yMid, diameter, diameter);
+    
+    int xStart;
+    if (!startsBeforeYearAgo) {
+      xStart = x0Graph + (int) (w * getRelativeTime(firstCommit.getDate()));
+      ellipse(xStart, yMid, diameter, diameter);
+    } else {
+      xStart = x0Graph;
+    }
+    noFill();
+    stroke(col);
+    strokeWeight(3);
+    line(xStart, yMid, xEnd, yMid);
+    
+    strokeWeight(2);
+    int top = yMid + 3;
+    int bottom = yMid - 3;
+    for (int i = firstCommitPos; i < numCommits - 1; i++) {
+      NetworkDataChunk.Commit commit = commits.get(i);
+      int x = x0Graph + (int) (w * getRelativeTime(commit.getDate()));
+      line(x, top, x, bottom);
+    }
+  }
+  
+  private float getRelativeTime(Date date) {
+    long startTime = dateYearAgo.getTime();
+    long endTime = dateNow.getTime();
+    long range = endTime - startTime;
+    long time = date.getTime();
+    return (float) (time - startTime) / range;
+  }
+  
+  private void drawBlock(float percent, int row) {
+    // Pick a colour based on the row
+    color col = FORK_COLORS[row % FORK_COLORS.length];
+    
+    int yStart = y0 + REPO_HEIGHT + rowHeight * row;
+    int yMid = yStart + rowHeight / 2;
+    int xOffset = x0 + COL_WIDTH;
+    int graphWidth = x1Graph - x0Graph;
+    int diameter = 7;
+    
+    int pos = xOffset + (int) (percent * graphWidth);
+    
+    noStroke();
+    fill(col);
+    ellipse(pos, yMid, diameter, diameter);
   }
   
   // Generate some random data for each fork
@@ -273,7 +363,7 @@ class Table
     // Constants
     int startPointHeight = 10;
     float dayWidth = (float) (x1Graph - x0Graph) / 364;
-    int xOffset = x0 + COL_WIDTH;  
+    int xOffset = x0 + COL_WIDTH;
     
     int numCommits = commits.size();
     

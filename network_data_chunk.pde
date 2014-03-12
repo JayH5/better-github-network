@@ -8,7 +8,7 @@ static class NetworkDataChunk {
     params.put("nethash", nethash);
     URL url = HttpClient.buildURL(HttpClient.GITHUB_OLD_API, path, params);
     JsonElement json = HttpClient.queryJsonService(url);
-    return new NetworkDataChunk((JsonArray) json);
+    return new NetworkDataChunk((JsonObject) json);
   }
   
   static NetworkDataChunk fetch(String owner, String repo, String nethash, int start, int end) {
@@ -19,22 +19,25 @@ static class NetworkDataChunk {
     params.put("end", String.valueOf(end));
     URL url = HttpClient.buildURL(HttpClient.GITHUB_OLD_API, path, params);
     JsonElement json = HttpClient.queryJsonService(url);
-    return new NetworkDataChunk((JsonArray) json);
+    return new NetworkDataChunk((JsonObject) json);
   }
   
-  NetworkDataChunk(JsonArray json) {
-    commits = new ArrayList<Commit>(json.size());
-    for (JsonElement commit : json) {
+  NetworkDataChunk(JsonObject json) {
+    JsonArray commitsJson = json.getAsJsonArray("commits");
+    commits = new ArrayList<Commit>(commitsJson.size());
+    for (JsonElement commit : commitsJson) {
       commits.add(new Commit((JsonObject) commit));
     }
   }
   
-  static class Commit {
+  static class Commit implements Comparable<Commit> {
     final String id;
     final List<Parent> parents;
     final int space;
     final int time;
     final String date;
+    
+    static final DateFormat GITHUB_DATE = new SimpleDateFormat("yyyy-MM-dd' 'HH:mm:ss");
     
     Commit(JsonObject obj) {
       id = getString(obj, "id");
@@ -47,6 +50,20 @@ static class NetworkDataChunk {
       for (JsonElement parent : parentsJson) {
         parents.add(new Parent((JsonArray) parent));
       }
+    }
+    
+    public Date getDate() {
+      Date dateDate = null;
+      try {
+        dateDate = GITHUB_DATE.parse(date);
+      } catch (ParseException e) {
+        println("Couldn't parse date!");
+      }
+      return dateDate;
+    }
+    
+    public int compareTo(Commit other) {
+      return ((Integer) time).compareTo(other.time);
     }
     
     static class Parent {

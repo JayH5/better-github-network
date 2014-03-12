@@ -3,6 +3,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,7 @@ String DEFAULT_OWNER = "square";
 String DEFAULT_REPO = "picasso";
 String DEFAULT_BRANCH = "master";
 int NUMBER_FORK_BRANCHES = 2;
+int NETWORK_DATA_CHUNK_SIZE = 200;
 
 Repo repo;
 Branches branches;
@@ -31,9 +33,9 @@ boolean deliverForks = false;
 boolean deliverForkBranches = false;
 
 NetworkMeta networkMeta;
-NetworkDataChunk networkDataChunk;
+List<NetworkDataChunk> networkDataChunks;
 boolean deliverNetworkMeta = false;
-boolean deliverNetworkDataChunk = false;
+boolean deliverNetworkDataChunks = false;
 
 Table table;
 
@@ -66,7 +68,6 @@ void checkDeliveries() {
     if (commitActivity != null) {
       table.setRepoCommitActivity(commitActivity);
     }
-    //CODE FREQUENCy
     thread("fetchCodeFrequency");
     deliverCommitActivity = false;
   }
@@ -95,14 +96,24 @@ void checkDeliveries() {
   if (deliverNetworkMeta) {
     if (networkMeta != null) {
       List<NetworkMeta.Block> blocks = networkMeta.blocks;
-      int rows = Math.min(blocks.size() - 1, NUM_ROWS);
+      int rows = Math.min(blocks.size(), NUM_ROWS);
       for (int i = 0; i < rows; i++) {
-        table.setForkName(i, blocks.get(i + 1).name);
-      } 
+        table.setForkName(i, blocks.get(i).name);
+      }
+      thread("fetchNetworkDataChunks");
     }
+    deliverNetworkMeta = false;
   }
-  if (deliverNetworkDataChunk) {
-    // TODO: do something with the network data
+  if (deliverNetworkDataChunks) {
+    if (networkDataChunks != null) {      
+      // Draw commits
+      List<NetworkMeta.Block> blocks = networkMeta.blocks;
+      int rows = Math.min(blocks.size(), NUM_ROWS);
+      for (int i = 0; i < rows; i++) {
+        table.setBlockData(i, blocks.get(i).commits);
+      }
+    }
+    deliverNetworkDataChunks = false;
   }
 }
 
@@ -132,6 +143,39 @@ void fetchNetworkMeta() {
   networkMeta = NetworkMeta.fetch(DEFAULT_OWNER, DEFAULT_REPO);
   println("Network meta delivered");
   deliverNetworkMeta = true;
+}
+
+void fetchNetworkDataChunks() {
+  println("Fetching network data chunks...");
+  int remaining = networkMeta.focus;
+  int chunks = Math.round((float) remaining / NETWORK_DATA_CHUNK_SIZE);
+  networkDataChunks = new ArrayList<NetworkDataChunk>(chunks);
+  for (int i = 0; i < chunks; i++) {
+    int start = Math.max(remaining - NETWORK_DATA_CHUNK_SIZE, 0);
+    int end = remaining;
+    println("Fetching network data chunk " + i + " {" + start + " -> " + end + "}");
+    networkDataChunks.add(NetworkDataChunk.fetch(DEFAULT_OWNER, DEFAULT_REPO, networkMeta.nethash, start, end));
+    remaining -= (end - start);
+  }
+  println("Network data chunks delivered");
+  println("Sorting data points into blocks...");
+  // Sort columns into blocks
+  for (NetworkDataChunk chunk : networkDataChunks) {
+    List<NetworkDataChunk.Commit> commits = chunk.commits;
+    List<NetworkMeta.Block> blocks = networkMeta.blocks;
+    for (NetworkDataChunk.Commit commit : commits) {
+      int pos = Collections.binarySearch(blocks, commit.space);
+      if (pos < 0) {
+        pos = -pos - 2;
+      }
+      if (pos >= 0 && pos < blocks.size()) {
+        blocks.get(pos).addCommit(commit);
+      }
+      //println("Commit added to block " + pos);
+    }
+  }
+  println("Done sorting");
+  deliverNetworkDataChunks = true;
 }
 
 void fetchCommitActivity() {
