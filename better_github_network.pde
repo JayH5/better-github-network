@@ -60,6 +60,7 @@ void checkDeliveries() {
     if (commitActivity != null) {
       table.setRepoCommitActivity(commitActivity);
     }
+    //CODE FREQUENCy
     thread("fetchCodeFrequency");
     deliverCommitActivity = false;
   }

@@ -12,14 +12,14 @@ class Table
   final int ROWS=10, ROW_HEIGHT=10,HEIGHT=720;
   final String[] months = { "Apr '13", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan '14", "Feb", "Mar" };
   
-  final int REPO_HEIGHT = 100;
+  final int REPO_HEIGHT = 200;
   final int COL_WIDTH = 120;
   final int SHADOW_HEIGHT = 5;
   final int TEXT_VERTICAL_OFFSET = 5;
   final int TEXT_HORIZONTAL_OFFSET = 10;
   
   final int MAX_COMMIT_ALPHA = 192;
-  final int MIN_COMMIT_ALPHA = 20;
+  final int MIN_COMMIT_ALPHA = 40;
   
   final color[] FORK_COLORS = new color[] { #33B5E5, #AA66CC, #99CC00, #FFBB33, #FF4444 };
   
@@ -91,7 +91,7 @@ class Table
     // Calculate positions
     for (int day = 0; day < days; day++) {
       int commits = commitActivity.get(day);
-      if (day == 0) {
+      if (commits == 0) {
         continue;
       }
       
@@ -175,8 +175,8 @@ class Table
   {
     noStroke();
     fill(28, 30, 32);
-    rect(0, 0, width, REPO_HEIGHT);
-    fill(255, 192);
+    //rect(0, 0, width, REPO_HEIGHT);
+    fill(0, 64);
     rect(0, 0, COL_WIDTH, REPO_HEIGHT);
     
     int ruleY0 = y0 + REPO_HEIGHT - 5;
