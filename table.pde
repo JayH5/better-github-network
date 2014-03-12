@@ -11,7 +11,7 @@ import java.util.Date;
 class Table
 {
   final int ROWS=10, ROW_HEIGHT=10,HEIGHT=720;
-  final String[] months = { "Apr '13", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan '14", "Feb", "Mar" };
+  final String[] months = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
   
   final int REPO_HEIGHT = 200;
   final int COL_WIDTH = 120;
@@ -30,8 +30,8 @@ class Table
   
   final PFont inconsolata;
   
-  final Date dateNow;
-  final Date dateYearAgo;
+  final Date startDate;
+  final Date endDate;
   
   //constructor
   Table(int x0, int y0, int x1, int y1, int rows)
@@ -57,14 +57,13 @@ class Table
 
     inconsolata = loadFont("Inconsolata-14.vlw");
     
-    dateNow = new Date();
+    endDate = new Date(); // Now
     Calendar cal = Calendar.getInstance();
     cal.add(Calendar.YEAR, -1);
-    dateYearAgo = cal.getTime();
+    startDate = cal.getTime(); // A year ago
 
     drawTable();
-    drawRepo();
-    //drawForks();    
+    drawRepo();   
   }
   
   void setRepoName(String name) {
@@ -188,13 +187,65 @@ class Table
     fill(0, 64);
     rect(0, 0, COL_WIDTH, REPO_HEIGHT);
     
+    drawRuler();
+    drawShadow();
+        
+    // Draw graph area    
+    fill(255);
+    noStroke();
+    int w = x1Graph - x0Graph;
+    int h = y1Graph - y0Graph;
+    //rect(x0Graph, y0Graph, w, h, 4, 0, 0, 4);
+    
+    // Draw line down middle of graph
+    noFill();
+    stroke(0, 120);
+    strokeWeight(1);
+    int y = y0Graph + h / 2;
+    line(x0Graph, y, x1Graph, y);
+  }
+  
+  private void drawRuler() {
     int ruleY0 = y0 + REPO_HEIGHT - 5;
     int markY0 = y0 + REPO_HEIGHT - 3;
     int textY = y0 + REPO_HEIGHT - 10;
-    int monthWidth = (x1 - x0 - COL_WIDTH) / 12;
-    int monthMarks = monthWidth / 5;
-    for (int i = 0; i < 12; i++)
-    {
+    float dayWidth = (x1Graph - x0Graph) / 364.0f;
+    
+    // How far into the month are we?
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(startDate);
+    for (int i = 0; i < 364; i++) {
+      int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
+      
+      int xStart = x0Graph + (int) (dayWidth * i); 
+      
+      if (dayOfMonth == 1) {
+        // Draw ruler measure
+        stroke(192);
+        strokeWeight(2);
+        noFill();
+        line(xStart, ruleY0, xStart, REPO_HEIGHT);
+
+        // Draw month name
+        fill(192);
+        String month = months[cal.get(Calendar.MONTH)];
+        int offset = (int) ((month.length() / 3.0f) * 10);
+        text(month, xStart - offset, textY);
+      } else {
+        int daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+        float drawPoint = daysInMonth / 5.0f;
+        if ((int) ((dayOfMonth - 1) % drawPoint) == 0) {
+          strokeWeight(1);
+          stroke(192);
+          noFill();
+          line(xStart, ruleY0, xStart, REPO_HEIGHT);
+        }
+      }
+      
+      cal.add(Calendar.DATE, 1);
+    }
+    
+    /*for (int i = 0; i < 12; i++) {
       int xStart = x0Graph + monthWidth * i;
       
       // Draw ruler measure
@@ -215,25 +266,12 @@ class Table
       String month = months[i];
       int offset = (int) ((month.length() / 3.0f) * 10);
       text(months[i], xStart - offset, textY);
-    }
-   
-    // Draw gradient
+    }*/
+  }
+
+  private void drawShadow() {
     linearGradient(x0, REPO_HEIGHT, x1 - x0, SHADOW_HEIGHT,
         color(28, 30, 32, 128), color(28, 30, 32, 0));
-        
-    // Draw graph area    
-    fill(255);
-    noStroke();
-    int w = x1Graph - x0Graph;
-    int h = y1Graph - y0Graph;
-    //rect(x0Graph, y0Graph, w, h, 4, 0, 0, 4);
-    
-    // Draw line down middle of graph
-    noFill();
-    stroke(0, 120);
-    strokeWeight(1);
-    int y = y0Graph + h / 2;
-    line(x0Graph, y, x1Graph, y);
   }
   
   void setBlockData(int row, List<NetworkDataChunk.Commit> commits) {
@@ -244,11 +282,11 @@ class Table
     NetworkDataChunk.Commit firstCommit = commits.get(0);
     int firstCommitPos = 0;
     boolean startsBeforeYearAgo = false;
-    if (firstCommit.getDate().before(dateYearAgo)) {
+    if (firstCommit.getDate().before(startDate)) {
       startsBeforeYearAgo = true;
       for (; firstCommitPos < numCommits; firstCommitPos++) {
         firstCommit = commits.get(firstCommitPos);
-        if (firstCommit.getDate().after(dateYearAgo)) {
+        if (firstCommit.getDate().after(startDate)) {
           break;
         }
       }
@@ -293,32 +331,15 @@ class Table
   }
   
   private float getRelativeTime(Date date) {
-    long startTime = dateYearAgo.getTime();
-    long endTime = dateNow.getTime();
+    long startTime = startDate.getTime();
+    long endTime = endDate.getTime();
     long range = endTime - startTime;
     long time = date.getTime();
     return (float) (time - startTime) / range;
   }
   
-  private void drawBlock(float percent, int row) {
-    // Pick a colour based on the row
-    color col = FORK_COLORS[row % FORK_COLORS.length];
-    
-    int yStart = y0 + REPO_HEIGHT + rowHeight * row;
-    int yMid = yStart + rowHeight / 2;
-    int xOffset = x0 + COL_WIDTH;
-    int graphWidth = x1Graph - x0Graph;
-    int diameter = 7;
-    
-    int pos = xOffset + (int) (percent * graphWidth);
-    
-    noStroke();
-    fill(col);
-    ellipse(pos, yMid, diameter, diameter);
-  }
-  
   // Generate some random data for each fork
-  void drawForks() {   
+  void drawRandomForks() {   
     // Generate start positions, we start with most recent commit
     List<Integer> commits = new ArrayList<Integer>();    
     int offsetRange = 65;

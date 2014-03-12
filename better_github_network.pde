@@ -49,7 +49,6 @@ void setup() {
   // Fetch data
   thread("fetchRepo");
   thread("fetchCommitActivity");
-  //thread("fetchForks");
   thread("fetchNetworkMeta");
 }
 
