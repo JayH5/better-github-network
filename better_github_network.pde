@@ -43,8 +43,13 @@ void setup() {
   size(WIDTH, HEIGHT);
   background(255);
   smooth();
+  
+  Calendar cal = Calendar.getInstance();
+  cal.add(Calendar.YEAR, -1);
+  Date start = cal.getTime();
+  Date end = new Date();
 
-  table = new Table(0, 0, width, height, NUM_ROWS);
+  table = new Table(0, 0, width, height, NUM_ROWS, start, end);
   
   // Fetch data
   thread("fetchRepo");

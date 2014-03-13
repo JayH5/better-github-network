@@ -34,8 +34,7 @@ class Table
   final Date endDate;
   
   //constructor
-  Table(int x0, int y0, int x1, int y1, int rows)
-  {
+  Table(int x0, int y0, int x1, int y1, int rows, Date start, Date end) {
     this.x0 = x0;
     this.y0 = y0;
     this.x1 = x1;
@@ -57,10 +56,8 @@ class Table
 
     inconsolata = loadFont("Inconsolata-14.vlw");
     
-    endDate = new Date(); // Now
-    Calendar cal = Calendar.getInstance();
-    cal.add(Calendar.YEAR, -1);
-    startDate = cal.getTime(); // A year ago
+    endDate = end; // Now
+    startDate = start; // A year ago
 
     drawTable();
     drawRepo();   
