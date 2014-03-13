@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,10 +45,11 @@ void setup() {
   background(255);
   smooth();
   
-  Calendar cal = Calendar.getInstance();
-  cal.add(Calendar.YEAR, -1);
+  // Draw table for 1st week of February
+  Calendar cal = new GregorianCalendar(2014, Calendar.FEBRUARY, 1);
   Date start = cal.getTime();
-  Date end = new Date();
+  cal.add(Calendar.MONTH, 2);
+  Date end = cal.getTime();
 
   table = new Table(0, 0, width, height, NUM_ROWS, start, end);
   

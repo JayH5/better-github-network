@@ -176,14 +176,7 @@ class Table
   //Draw repo stats with Months below
   //Draw a fork
   //Draw all 
-  void drawRepo()
-  {
-    noStroke();
-    fill(28, 30, 32);
-    //rect(0, 0, width, REPO_HEIGHT);
-    fill(0, 64);
-    rect(0, 0, COL_WIDTH, REPO_HEIGHT);
-    
+  void drawRepo() {    
     drawRuler();
     drawShadow();
         
@@ -194,6 +187,10 @@ class Table
     int h = y1Graph - y0Graph;
     //rect(x0Graph, y0Graph, w, h, 4, 0, 0, 4);
     
+    noStroke();
+    fill(0, 64);
+    //rect(x0, y0Graph, COL_WIDTH, h);
+    
     // Draw line down middle of graph
     noFill();
     stroke(0, 120);
@@ -203,15 +200,16 @@ class Table
   }
   
   private void drawRuler() {
+    int days = (int) ((endDate.getTime() - startDate.getTime()) / 86400000);
+    
     int ruleY0 = y0 + REPO_HEIGHT - 5;
     int markY0 = y0 + REPO_HEIGHT - 3;
     int textY = y0 + REPO_HEIGHT - 10;
-    float dayWidth = (x1Graph - x0Graph) / 364.0f;
-    
-    // How far into the month are we?
+    float dayWidth = (float) (x1Graph - x0Graph) / days;    
+
     Calendar cal = Calendar.getInstance();
     cal.setTime(startDate);
-    for (int i = 0; i < 364; i++) {
+    for (int i = 0; i < days; i++) {
       int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
       
       int xStart = x0Graph + (int) (dayWidth * i); 
@@ -227,43 +225,36 @@ class Table
         fill(192);
         String month = months[cal.get(Calendar.MONTH)];
         int offset = (int) ((month.length() / 3.0f) * 10);
+        textSize(14);
         text(month, xStart - offset, textY);
       } else {
-        int daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
-        float drawPoint = daysInMonth / 5.0f;
-        if ((int) ((dayOfMonth - 1) % drawPoint) == 0) {
+        if (days > 40) {
+          int daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+          float drawPoint = daysInMonth / 5.0f;
+          if ((int) ((dayOfMonth - 1) % drawPoint) == 0) {
+            strokeWeight(1);
+            stroke(192);
+            noFill();
+            line(xStart, ruleY0, xStart, REPO_HEIGHT);
+          }
+        } else {
           strokeWeight(1);
           stroke(192);
           noFill();
           line(xStart, ruleY0, xStart, REPO_HEIGHT);
+          
+          // Draw date of month
+          fill(192);
+          String day = String.valueOf(dayOfMonth);
+          int offset = (int) ((day.length() / 3.0f) * 10);
+          textSize(10);
+          text(day, xStart - offset, textY + 2);
         }
       }
       
       cal.add(Calendar.DATE, 1);
     }
-    
-    /*for (int i = 0; i < 12; i++) {
-      int xStart = x0Graph + monthWidth * i;
-      
-      // Draw ruler measure
-      stroke(192);
-      strokeWeight(2);
-      noFill();
-      line(xStart, ruleY0, xStart, REPO_HEIGHT);
-      
-      // Ruler marks inbetween
-      strokeWeight(1);
-      for (int j = 0; j < 5; j++) {
-        int xMark = xStart + j * monthMarks;
-        line(xMark, markY0, xMark, REPO_HEIGHT);
-      }
-      
-      // Draw month name
-      fill(192);
-      String month = months[i];
-      int offset = (int) ((month.length() / 3.0f) * 10);
-      text(months[i], xStart - offset, textY);
-    }*/
+
   }
 
   private void drawShadow() {
@@ -275,19 +266,31 @@ class Table
     Collections.sort(commits);
     int numCommits = commits.size(); 
     
-    // Find first commit within past year
-    NetworkDataChunk.Commit firstCommit = commits.get(0);
+    // Find first and last commit within time span
+    boolean startsBeforeStartDate = commits.get(0).getDate().before(startDate);
+    boolean endsAfterEndDate = commits.get(numCommits - 1).getDate().after(endDate);
+    
     int firstCommitPos = 0;
-    boolean startsBeforeYearAgo = false;
-    if (firstCommit.getDate().before(startDate)) {
-      startsBeforeYearAgo = true;
+    if (startsBeforeStartDate) {
       for (; firstCommitPos < numCommits; firstCommitPos++) {
-        firstCommit = commits.get(firstCommitPos);
-        if (firstCommit.getDate().after(startDate)) {
+        if (commits.get(firstCommitPos).getDate().after(startDate)) {
           break;
         }
       }
     }
+    
+    int lastCommitPos = numCommits - 1;
+    if (endsAfterEndDate) {
+      for (; lastCommitPos >= 0; lastCommitPos--) {
+        if (commits.get(lastCommitPos).getDate().after(startDate)) {
+          break;
+        }
+      }
+    }
+ 
+    if (firstCommitPos > lastCommitPos) {
+      return;
+    }   
     
     // Pick a colour based on the row
     color col = FORK_COLORS[row % FORK_COLORS.length];
@@ -297,16 +300,22 @@ class Table
     
     int w = x1Graph - x0Graph;
     
-    int diameter = 7;
-    
-    NetworkDataChunk.Commit lastCommit = commits.get(numCommits - 1);
-    int xEnd = x0Graph + (int) (w * getRelativeTime(lastCommit.getDate()));    
+    int diameter = 7;    
     noStroke();
     fill(col);
-    ellipse(xEnd, yMid, diameter, diameter);
+    
+    int xEnd;
+    if (!startsBeforeStartDate) {
+      NetworkDataChunk.Commit lastCommit = commits.get(lastCommitPos);
+      xEnd = x0Graph + (int) (w * getRelativeTime(lastCommit.getDate()));
+      ellipse(xEnd, yMid, diameter, diameter);
+    } else {
+      xEnd = x1Graph;
+    }
     
     int xStart;
-    if (!startsBeforeYearAgo) {
+    if (!startsBeforeStartDate) {
+      NetworkDataChunk.Commit firstCommit = commits.get(firstCommitPos);
       xStart = x0Graph + (int) (w * getRelativeTime(firstCommit.getDate()));
       ellipse(xStart, yMid, diameter, diameter);
     } else {
@@ -320,7 +329,7 @@ class Table
     strokeWeight(2);
     int top = yMid + 3;
     int bottom = yMid - 3;
-    for (int i = firstCommitPos; i < numCommits - 1; i++) {
+    for (int i = firstCommitPos; i <= lastCommitPos; i++) {
       NetworkDataChunk.Commit commit = commits.get(i);
       int x = x0Graph + (int) (w * getRelativeTime(commit.getDate()));
       line(x, top, x, bottom);
